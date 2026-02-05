@@ -1,44 +1,73 @@
-const dao = require("../dao/userDb");
+const userDao = require('../dao/userDao');
 
 const authController = {
-    login: async (req, res) => {
-        const { email, password } = req.body;
-        if (!email || !password) {
-            return res.status(400).json({
-                msg: "Email and password required"
-            });
-        }
-        const user = await dao.findByEmail(email);
-        if (!user || user.password !== password) {
-            return res.status(401).json({
-                msg: "Invalid email or password"
-            });
-        }
-        return res.status(200).json({
-            msg: "login successful",
-            user: { id: user.id, name: user.name, email: user.email }
-        });
-    },
 
-    register: async (req, res) => {
-        const { name, email, password } = req.body;
-        if (!name || !email || !password) {
-            return res.status(400).json({
-                msg: "Name, email and password required"
-            });
-        }
-        const existingUser = await dao.findByEmail(email);
-        if (existingUser) {
-            return res.status(409).json({
-                msg: "User already exists"
-            });
-        }
-        const newUser = await dao.createUser({ name, email, password });
-        return res.status(201).json({
-            msg: "user registered successfully",
-            user: { id: newUser.id }
+  login: async (request, response) => {
+    try {
+      const { email, password } = request.body;
+
+      if (!email || !password) {
+        return response.status(400).json({
+          message: 'Email and password are required'
         });
+      }
+
+      const user = await userDao.findByEmail(email);
+
+      if (!user || user.password !== password) {
+        return response.status(401).json({
+          message: 'Invalid email or password'
+        });
+      }
+      return response.status(200).json({
+        message: 'User authenticated',
+        user: user
+      });
+
+    } catch (error) {
+      console.error(error);
+      return response.status(500).json({
+        message: 'Internal server error'
+      });
     }
+  },
+
+  register: async (request, response) => {
+    try {
+      const { name, email, password } = request.body;
+
+      if (!name || !email || !password) {
+        return response.status(400).json({
+          message: 'Name, email and password are required'
+        });
+      }
+
+      const user = await userDao.create({
+        name: name,
+        email: email,
+        password: password
+      });
+
+      return response.status(200).json({
+        message: 'User registered',
+        user: { id: user._id }
+      });
+
+    } catch (error) {
+      console.error(error);
+
+      if (error.code === 'USER_EXIST') {
+        return response.status(400).json({
+          message: 'User with the email already exists'
+        });
+      }
+
+      return response.status(500).json({
+        message: 'Internal server error'
+      });
+    }
+  }
+
 };
 
 module.exports = authController;
