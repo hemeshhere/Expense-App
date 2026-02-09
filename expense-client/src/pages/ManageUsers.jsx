@@ -1,11 +1,19 @@
 import { useEffect, useState } from "react";
 import axios from "axios";
 import { serverEndpoint } from "../config/appConfig";
-
+import Can from '../components/Can'
 function ManageUsers() {
   const [users, setUsers] = useState([]);
+  const [message, setMessage]= useState(null);
   const [errors, setErrors] = useState({});
+  const [actionLoading, setActionLoading]= useState(false);
   const [loading, setLoading] = useState(true);
+  
+  const [formData, setFormData]=useState({
+    name: "",
+    email: "",
+    role: "Select"
+  });
 
   const fetchUsers = async () => {
     try {
@@ -25,6 +33,61 @@ function ManageUsers() {
     fetchUsers();
   }, []);
 
+  const handleChange=(e)=>{
+    const name= e.target.name;
+    const value=e.target.value;
+    setFormData({
+        ...formData,
+        [name] : value,
+    });
+  };
+
+  const validate=()=>{
+    let isValid=true;
+    let newErrors={};
+    if(formData.name.length==0){
+        isValid=false;
+        newErrors.name="Name is required";
+    }
+    if(formData.email.length==0){
+        isValid=false;
+        newErrors.name="Email is required";
+    }
+    if(formData.role==="Select"){
+        isValid=false;
+        newErrors.name="Role is required";
+    }
+    setErrors(newErrors);
+    return isValid;
+  }
+
+  const handleSubmit = async (e)=>{
+    e.preventDefault();
+    if(validate()){
+        setActionLoading(true);
+        try{
+            const response=await axios.post(`${serverEndpoint}/users/`,
+                {
+                    name: formData.name,
+                    email: formData.email,
+                    role: formData.role,
+                },
+                {withCredentials: true}
+            );
+            setUsers([...users, response.data.user]);
+            setMessage("User added!");
+        }
+        catch(error){
+            console.log(error);
+            setErrors({message: "Unable to add user, please try again"})
+        }
+        finally{
+            setActionLoading(false);
+        }
+    }
+  };
+
+
   if (loading) {
     return (
       <div className="container p-5 text-center">
@@ -37,12 +100,6 @@ function ManageUsers() {
 
   return (
     <div className="container py-5 px-4 px-md-5">
-      {errors.message && (
-        <div className="alert alert-danger" role="alert">
-          {errors.message}
-        </div>
-      )}
-
       <div className="row align-items-center mb-5">
         <div className="col-md-8 text-center text-md-start">
           <h2 className="fw-bold display-6">
@@ -53,10 +110,108 @@ function ManageUsers() {
           </p>
         </div>
       </div>
+      
+      {errors.message && (
+        <div className="alert alert-danger" role="alert">
+          {errors.message}
+        </div>
+      )}  
 
+      {message && (
+        <div className="alert alert-success" role="alert">
+          {message}
+        </div>
+      )}  
+      
       <div className="row">
         {/* Add user form (future) */}
-        <div className="col-md-3"></div>
+        <Can requiredPermission="canCreateUsers">
+        <div className="col-md-3">
+            <div className="card shadow-sm">
+                <div className="card-header">
+                    <h5>Add Member</h5>
+                </div>
+
+                <div className="card-body p-2">
+                    <form onSubmit={handleSubmit}>
+                        <div className="mb-3">
+                            <label className="form-label">Name</label>
+                            <input 
+                                type="text"
+                                name="name" 
+                                className={
+                                    errors.name ? `form-control is invalid` 
+                                    : `form control` 
+                                } 
+                                value={formData.name}
+                                onChange={handleChange}
+                            />
+                            {errors.name && (
+                                <div className="invalid-feedback ps-1">
+                                    {errors.name}
+                                </div>
+                            )}
+                        </div>
+
+                        <div className="mb-3">
+                            <label className="form-label">Email</label>
+                            <input 
+                                type="text"
+                                name="email" 
+                                className={
+                                    errors.email ? `form-control is invalid` 
+                                    : `form control` 
+                                } 
+                                value={formData.email}
+                                onChange={handleChange}
+                            />
+                            {errors.email && (
+                                <div className="invalid-feedback ps-1">
+                                    {errors.email}
+                                </div>
+                            )}
+                        </div>
+
+                        <div className="mb-3">
+                            <label className="form-label">Role</label>
+                            <select 
+                                type="text"
+                                name="role" 
+                                className={
+                                    errors.role ? `form-control is invalid` 
+                                    : `form control` 
+                                } 
+                                value={formData.role}
+                                onChange={handleChange}
+                            >
+                                <option value="Select">Select</option>
+                                <option value="manager">Manager</option>
+                                <option value="viewer">Viewer</option>
+                            </select>
+                            {errors.role && (
+                                <div className="invalid-feedback ps-1">
+                                    {errors.role}
+                                </div>
+                            )}
+                        </div>
+                        <div className="mb-3">
+                            <button className="btn btn-primary w-100">
+                                {actionLoading ? (
+                                    <div className="spinner-border" role="status">
+                                        <span className="visually-hidden">
+                                            Loading...
+                                        </span>
+                                    </div>
+                                ) : (
+                                    <>Add</>
+                                )}
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+        </Can>
 
         {/* Users table */}
         <div className="col-md-9">

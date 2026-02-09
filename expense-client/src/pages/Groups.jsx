@@ -3,11 +3,13 @@ import { serverEndpoint } from "../config/appConfig";
 import { useEffect, useState } from "react";
 import GroupCard from "../components/GroupCard";
 import CreateGroupModal from "../components/CreateGroupModal";
+import { usePermission } from "../rbac/userPermissions";
 
 function Groups() {
     const [groups, setGroups] = useState([]);
     const [loading, setLoading] = useState(true);
     const [show, setShow] = useState(false);
+    const permissions=usePermission();
 
     const fetchGroups = async () => {
         try {
@@ -72,15 +74,17 @@ function Groups() {
                         expenses in one click.
                     </p>
                 </div>
-                <div className="col-md-4 text-center text-md-end">
-                    <button
-                        className="btn btn-primary rounded-pill px-4 py-2 fw-bold shadow-sm"
-                        onClick={() => setShow(true)}
-                    >
-                        <i className="bi bi-plus-lg me-2"></i>
-                        New Group
-                    </button>
-                </div>
+                {permissions.canCreateGroups && (
+                    <div className="col-md-4 text-center text-md-end">
+                        <button
+                            className="btn btn-primary rounded-pill px-4 py-2 fw-bold shadow-sm"
+                            onClick={() => setShow(true)}
+                        >
+                            <i className="bi bi-plus-lg me-2"></i>
+                            New Group
+                        </button>
+                    </div>
+                )}
             </div>
 
             <hr className="mb-5 opacity-10" />

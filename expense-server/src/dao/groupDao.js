@@ -47,7 +47,25 @@ const groupDao = {
         // is the date within paymentStatus.
         const group = await Group.findById(groupId).select('paymentStatus.date');
         return group ? group.paymentStatus.date : null;
-    }
+    },
+
+    getGroupsPaginated: async(email, limit, skip)=>{
+        const[groups, totalCount] = await Promise.all([
+            //find group with given email
+            //sort them to preserve order across
+            //pagination requests, and then perform
+            //skip and limit to get the desired page
+            await Group.find({membersEmail: email})
+            .sort({createdAt: -1})
+            .skip(skip)
+            .limit(limit),
+
+            //cnt the number of records present in the collection with given mail.
+            Group.countDocuments({membersEmail: email})
+
+        ]);
+
+    },
 };
 
 module.exports = groupDao;

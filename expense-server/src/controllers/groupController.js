@@ -1,3 +1,4 @@
+const { parse } = require("dotenv");
 const groupDao = require("../dao/groupDao");
 
 const groupController = {
@@ -71,6 +72,10 @@ const groupController = {
     getGroupsByUser: async (request, response) => {
         try {
             const email = request.user.email;
+
+            const page=parseInt(request.query.page) || 1;
+            const limit=parseInt(request.query.limit) || 10;
+
             const groups = await groupDao.getGroupByEmail(email);
             response.status(200).json(groups);
         } catch (error) {
