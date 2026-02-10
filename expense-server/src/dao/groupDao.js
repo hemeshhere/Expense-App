@@ -49,22 +49,21 @@ const groupDao = {
         return group ? group.paymentStatus.date : null;
     },
 
-    getGroupsPaginated: async(email, limit, skip)=>{
+    getGroupsPaginated: async(email, limit, skip, sortOptions = {createdAt: -1})=>{
         const[groups, totalCount] = await Promise.all([
             //find group with given email
             //sort them to preserve order across
             //pagination requests, and then perform
             //skip and limit to get the desired page
             await Group.find({membersEmail: email})
-            .sort({createdAt: -1})
+            .sort(sortOptions)
             .skip(skip)
             .limit(limit),
 
             //cnt the number of records present in the collection with given mail.
             Group.countDocuments({membersEmail: email})
-
         ]);
-
+        return {groups, totalCount};
     },
 };
 

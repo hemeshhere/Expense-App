@@ -10,14 +10,19 @@ function Groups() {
     const [loading, setLoading] = useState(true);
     const [show, setShow] = useState(false);
     const permissions=usePermission();
-
-    const fetchGroups = async () => {
+    const [currentPage, setCurrentPage]=useState(1);
+    const [totalPages, setTotalPages]=useState(1);
+    const [limit] = useState(5);
+    //here page=1 is treated as if nothing is passed in params then page=1 (-pagination)
+    const fetchGroups = async (page = 1) => {
         try {
             const response = await axios.get(
-                `${serverEndpoint}/groups/my-groups`,
+                `${serverEndpoint}/groups/my-groups?page=${page}&limit=${limit}`,
                 { withCredentials: true }
             );
-            setGroups(response.data);
+            setGroups(response?.data?.groups);
+            setTotalPages(response?.data?.pagination?.totalPages);
+            setCurrentPage(response?.data?.pagination?.currentPage);
         } catch (error) {
             console.log(error);
         } finally {
@@ -26,21 +31,23 @@ function Groups() {
     };
 
     const handleGroupUpdateSuccess = (data) => {
-        setGroups((prevGroups) => {
-            const exists = prevGroups.some((group) => group._id === data._id);
-            if (exists) {
-                return prevGroups.map((group) =>
-                    group._id === data._id ? data : group
-                );
-            } else {
-                return [data, ...prevGroups];
-            }
-        });
+        //Default to 1st page whenever there is an update to the group, or new group
+        //is added. this logic can be customised as per the user experience you want to 
+        //provide. You can choose to keep the user on the same page or go to last page.
+        fetchGroups(1);    
     };
 
+    //Triggers fetchGroup when the component is rendered for the very first
+    //time and also whenever value of the currentPage state variable changes. 
     useEffect(() => {
-        fetchGroups();
-    }, []);
+        fetchGroups(currentPage);
+    }, [currentPage]);
+
+    const handlePageChange=(newPage)=>{
+        if(newPage>=1 && newPage <= totalPages){
+            setCurrentPage(newPage);
+        }
+    };
 
     if (loading) {
         return (
@@ -125,6 +132,34 @@ function Groups() {
                         </div>
                     ))}
                 </div>
+            )}
+
+            {totalPages > 1 && (
+                <nav className="mt-5 d-flex justify-content-center">
+                    <ul className="pagination shadow-sm">
+                        {/* previous page button */}
+                        <li className={`page-item ${currentPage === 1 ? "disabled" : ""}`}>
+                            <button className="page-link" onClick={()=> handlePageChange(currentPage-1)}>
+                                &laquo;
+                            </button>
+                        </li>
+
+                        {[...Array(totalPages)].map((num, index)=>(
+                            <li key={index+1} className={`page-item ${currentPage === (index+1) ? "active" : ""}`}>
+                                <button className="page-link" onClick={()=>handlePageChange(index+1)}>
+                                    {index+1}
+                                </button>
+                            </li>
+                        ))}
+
+                        {/* next page button */}
+                        <li className={`page-item ${currentPage === totalPages ? "disabled" : ""}`}>
+                            <button className="page-link" onClick={()=> handlePageChange(currentPage+1)}>
+                                &raquo;
+                            </button>
+                        </li>
+                    </ul>
+                </nav>
             )}
 
             <CreateGroupModal

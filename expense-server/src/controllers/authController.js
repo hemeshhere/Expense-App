@@ -20,8 +20,10 @@ const authController = {
         user.role = user.role ? user.role : ADMIN_ROLE;
         user.adminId = user.adminId ? user.adminId : user._id;
 
-        const isPasswordMatched = await bcrypt.compare(password, user.password);
+        const isPasswordMatched = await bcrypt.compare(password, user?.password);
         if (user && isPasswordMatched) {
+            user.role = user.role ? user.role : ADMIN_ROLE;
+            user.adminId = user.adminId ? user.adminId : user._id;
             const token = jwt.sign({
                 name: user.name,
                 email: user.email,
