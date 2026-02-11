@@ -1,5 +1,6 @@
 const { parse } = require("dotenv");
 const groupDao = require("../dao/groupDao");
+const userDao=require("../dao/userDao");
 
 const groupController = {
 
@@ -7,6 +8,16 @@ const groupController = {
         try {
             const user = request.user;
             const { name, description, membersEmail, thumbnail } = request.body;
+
+            const userInfo=await userDao.findByEmail(user.email);
+            if(userInfo.credits===undefined){
+                userInfo.credits=1; //defining 1 so that he can atleast make 1 group in trial phase
+            }
+            if(Number(userInfo.credits===0)){
+                return response.status(400).json({
+                    message:  'You don not have enough credits to perform this operation'
+                })
+            }
 
             let allMembers = [user.email];
             if (membersEmail && Array.isArray(membersEmail)) {
@@ -26,6 +37,9 @@ const groupController = {
                     isPaid: false
                 }
             });
+
+            userInfo.credits-=1; //deduct a credit when he makes a group
+            userInfo.save();
 
             response.status(201).json({
                 message: 'Group created successfully',
