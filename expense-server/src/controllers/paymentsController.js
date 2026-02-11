@@ -1,8 +1,8 @@
 const Razorpay=require("razorpay");
 const crypto=require("crypto");
-const CREDIT_TO_PAISA_MAPPING= require("../constants/paymentConstants");
+const {CREDIT_TO_PAISA_MAPPING}= require("../constants/paymentConstants");
 const Users=require('../model/users')
-const razorpay=new Razorpay({
+const razorpayClient=new Razorpay({
     key_id: process.env.RAZORPAY_KEY_ID,
     key_secret: process.env.RAZORPAY_KEY_SECRET,
 });
@@ -12,7 +12,6 @@ const paymentController={
     createOrder: async (request, response) => {
         try {
             const {credits}=request.body;
-            console.log(CREDIT_TO_PAISA_MAPPING[10]);
             if(!CREDIT_TO_PAISA_MAPPING[credits]){
                 return response.status(400).json({
                     message: 'Invalid credit value'
@@ -20,7 +19,7 @@ const paymentController={
             }
             const amountInPaise=CREDIT_TO_PAISA_MAPPING[credits];
             //creating order
-            const order=await razorpayClient.orders.createOrder({
+            const order = await razorpayClient.orders.create({
                 amount: amountInPaise,
                 currency: 'INR',
                 receipt: `receipt_${Date.now()}`
@@ -28,6 +27,7 @@ const paymentController={
             return response.status(200).json({order: order});
         } 
         catch (error) {
+            console.log(error);
             return response.status(500).json({ message: 'Internal server error'} );
         }
     },
