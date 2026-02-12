@@ -22,6 +22,16 @@ const corsOption = {
 const app = express();
 
 app.use(cors(corsOption));
+
+// Skip applying express.json() middleware to
+// requests that starts with /payments/webhook.
+app.use((request, next, response)=>{
+    if(request.originalUrl.startsWith('/payments/webhook')){
+        next();
+    }
+    express.json()(request, next, response);
+});
+
 app.use(express.json()); // Middleware
 app.use(cookieParser()); // Middleware
 

@@ -75,6 +75,7 @@ function ManagePayments(){
             const options={
                 key: import.meta.env.VITE_RAZORPAY_KEY_ID,
                 amount: order.amount,
+                currency: order.currency,
                 name: 'MergeMoney',
                 description: `Order for purchasing ${credits} credits`,
                 order_id: order.id,
