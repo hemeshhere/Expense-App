@@ -114,19 +114,21 @@ const paymentController={
     handleWebhookEvents: async (request, response)=>{
         try{
             console.log('Received Event');
-            const signature=request.header['x-razorpay-signature'];
+            const signature=request.headers['x-razorpay-signature'];
             const body=request.body; 
             const expectedSignature = crypto
                 .createHmac('sha256', process.env.RAZORPAY_WEBHOOK_SECRET) // We'll generate this secret later on
                 .update(body)
                 .digest('hex');
             if(expectedSignature!==signature){
+                console.log('Invalid signature');
                 return response.status(400).send('Invalid Signature');
             }
+            console.log('Signature verified');
             const payload=JSON.parse(body);
             console.log(JSON.stringify(payload, null, 2));
             const event = payload.event;
-            const subscriptionData = payload.payload.subscription.entry;
+            const subscriptionData = payload.payload.subscription.entity;
             const razorpaySubscriptionId = subscriptionData.id;
             const userId = subscriptionData.notes?.userId;
             if (!userId) {

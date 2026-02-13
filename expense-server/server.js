@@ -27,6 +27,7 @@ app.use(cors(corsOption));
 // requests that starts with /payments/webhook.
 app.use((request, next, response)=>{
     if(request.originalUrl.startsWith('/payments/webhook')){
+        console.log('Webhook request, skipping json middleware');
         next();
     }
     express.json()(request, next, response);
