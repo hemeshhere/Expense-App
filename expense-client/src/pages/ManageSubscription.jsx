@@ -18,6 +18,7 @@ const PLAN_IDS={
 function ManageSubscription(){
     const [userProfile, setUserProfile]=useState(null);
     const [errors, setErrors]=useState({});
+    const [message, setMessage]=useState(null);
     const [loading, setLoading]=useState(true);
 
     const getUserProfile= async ()=>{
@@ -64,7 +65,7 @@ function ManageSubscription(){
         try{
             setLoading(true);
             const createSubscriptionResponse = await axios.post(
-                `${serverEndpoint}/payments/create-subscrition`,
+                `${serverEndpoint}/payments/create-subscription`,
                 {plan_name: planName},
                 {withCredentials: true}
             );
