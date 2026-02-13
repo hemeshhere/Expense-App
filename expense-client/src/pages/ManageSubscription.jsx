@@ -41,7 +41,7 @@ function ManageSubscription(){
         getUserProfile();
     },[]);
 
-    const rzpResponseHandler = async ()=>{
+    const rzpResponseHandler = async (response)=>{
         try{
             setLoading(true);
             const captureSubsResponse = await axios.post(
@@ -72,7 +72,7 @@ function ManageSubscription(){
             const subscription=createSubscriptionResponse.data.subscription;
             const options={
                 key: import.meta.env.VITE_RAZORPAY_KEY_ID,
-                name: PLAN_IDS[planName],
+                name: PLAN_IDS[planName].planName,
                 description: `Pay INR ${PLAN_IDS[planName].price} ${PLAN_IDS[planName].frequency}`,
                 subscription_id: subscription.id,
                 theme: { color: '#3399cc'},
